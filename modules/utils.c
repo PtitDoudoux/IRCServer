@@ -53,3 +53,24 @@ void broadcast_to_everyone_except_one(int* connected, int nb_connected, char* ms
             if (i != excepted) write(connected[i], tmp, sizeof(tmp));
     }
 }
+
+void broadcast_to_channel_except_one
+        (int* connected, User (*users)[MAX_CONN], Room (*rooms)[MAX_ROOMS], char* msg, int conn_id, int uid) {
+    int r, i;
+    bool stop = false;
+    char tmp[512];
+    for (r = 0; r < MAX_ROOMS; r++) {
+        for (i = 0; i < sizeof(rooms[i]->uc); i++) {
+            if (rooms[r]->uc[i] == conn_id) stop = true;
+        }
+        if (stop) break;
+    }
+    if (msg[0] != '\0') {
+        memset(&tmp, 0, sizeof(tmp));
+        strcpy(tmp, users[uid]->username);
+        strcat(tmp, " : ");
+        strcat(tmp, msg);
+        for (i = 0; i < sizeof(rooms[r]->uc); i++)
+            if (rooms[r]->uc[i] != conn_id) write(connected[uid], tmp, sizeof(tmp));
+    }
+}

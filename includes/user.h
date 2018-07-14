@@ -2,7 +2,11 @@
 #define IRC_SERVER_USER_H
 
 
+#define MAX_CONN 1000
+
+
 #include <stdbool.h>
+#include <memory.h>
 
 
 /**
@@ -16,8 +20,9 @@ typedef struct user {
 } User;
 
 
-User** user_connection(User** users, int conn_id, char* username);
-User** user_disconnection(User** users, int conn_id);
+void initialize_user_list(User** users, int max);
+void user_connection(User (*users)[], int conn_id, char* username);
+void user_disconnection(User** users, int conn_id);
 
 
 #endif //IRC_SERVER_USER_H

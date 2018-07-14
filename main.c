@@ -10,6 +10,7 @@
 #include <stdbool.h>
 #include "includes/utils.h"
 #include "includes/user.h"
+#include "includes/room.h"
 
 
 // TODO: Handle disconnection
@@ -59,13 +60,16 @@ int starting_server(int *lf, int mc) {
  * @return The status of the server
  */
 int server() {
-    int i, y, count = 0, max_conn = 1000, maxfdp1 = 0, error = 0,
-            listen_fd = 0, active_conn[max_conn];
+    int i, y, count = 0, maxfdp1 = 0, error = 0,
+            listen_fd = 0, active_conn[MAX_CONN];
     char msg_buffer[512];
-    User user_list[max_conn];
+    User user_list[MAX_CONN];  // initialize_user_list(user_list, max_conn);
+    Room room_list[MAX_ROOMS];
+    char* room_name[] = {"room1", "room2", "room3", "room4", "room5", "room6", "room7", "room8", "room9", "room10"};
+    initialize_n_rooms(room_list, room_name);
     fd_set rdfs;
 
-    error = starting_server(&listen_fd, max_conn);
+    error = starting_server(&listen_fd, MAX_CONN);
     if (error != 0) {
         printf("An error occured ! Exiting !\n");
         return -1;
@@ -84,13 +88,13 @@ int server() {
         if (FD_ISSET(listen_fd, &rdfs)) {
             active_conn[count] = accept(listen_fd, NULL, NULL);
             write(active_conn[count], "Set username : ", sizeof("Set username : "));
-            user_list[count].connection_id = count;
             memset(&msg_buffer, 0, sizeof(msg_buffer));
             read(active_conn[count], &msg_buffer, 512);
             strip_new_line(msg_buffer);
-            for (y = 0; y < sizeof(user_list[count].username) - 1; y++) user_list[count].username[y] = msg_buffer[y];
+            user_connection(user_list, active_conn[count], msg_buffer);
+            add_user_to_room(&user_list[count-1], &room_list[0]);
             strcat(msg_buffer, " connected !\n");
-            write(active_conn[i], msg_buffer, sizeof(msg_buffer));
+            write(active_conn[i], msg_buffer, sizeof(msg_buffer)); // TODO: Write to everyone
             count++;
             maxfdp1 = max(maxfdp1, active_conn[count]) + 1;  // Why the last fd ?
         }
@@ -100,10 +104,8 @@ int server() {
             if (FD_ISSET(active_conn[i], &rdfs)) {
                 memset(&msg_buffer, 0, sizeof(msg_buffer));
                 read(active_conn[i], &msg_buffer, 512);
-                broadcast_to_everyone_except_one(active_conn, count, msg_buffer, user_list[i].username, i);
-                // strcat(msg_buffer, user_list[i].username);
-                // for (y = 0; y < count; y++)
-                //    if (y != i) write(active_conn[y], msg_buffer, sizeof(msg_buffer));
+                // broadcast_to_everyone_except_one(active_conn, count, msg_buffer, user_list[i].username, i);
+                broadcast_to_channel_except_one(active_conn, user_list, room_list, msg_buffer, active_conn[i], i);
             }
         }
     }

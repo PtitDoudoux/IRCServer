@@ -2,8 +2,10 @@
 #define IRC_SERVER_ROOM_H
 
 
+#define MAX_ROOMS 10
+
+
 #include "user.h"
-#include "utils.h"
 
 
 /**
@@ -17,10 +19,10 @@ typedef struct room {
 } Room;
 
 
-Room* initialize_n_rooms(char** list_of_rooms);
-void add_user_to_channel(User* u, Room* r);
-void remove_user_from_channel(User* u, Room* r);
-void move_user_to_another_channel(User* u, Room* r1, Room* r2);
+void initialize_n_rooms(Room (*rooms)[], char** list_of_rooms);
+void add_user_to_room(User* u, Room* r);
+void remove_user_from_room(User* u, Room* r);
+void move_user_to_another_room(User* u, Room* r1, Room* r2);
 
 
 #endif //IRC_SERVER_ROOM_H
